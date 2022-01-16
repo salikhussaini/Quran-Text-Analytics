@@ -1,8 +1,9 @@
 import streamlit as st
-import pandas as pd
-import matplotlib.pyplot as plt
 
+import pandas as pd
 import numpy as np
+
+import matplotlib.pyplot as plt
 import plotly.graph_objects as go # Plotting
 import plotly.express as px
 import plotly.graph_objs as go
