@@ -2,14 +2,16 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 
+import numpy as np
 import plotly.graph_objects as go # Plotting
 import plotly.express as px
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 import zipfile
 
-st.set_page_config(page_title="The Holy Quran Analytics", page_icon="🙏", layout="centered")
+st.set_page_config(page_title="The Holy Quran", page_icon="🙏", layout="centered")
 
+st.title("🙏 The Holy Quran")
 @st.cache 
 def get_data():
     #Read df
@@ -35,18 +37,36 @@ def make_data(df):
 
     return(df_1a)
 df = make_data(file)
-with st.container():
+
+Options = ['Reader','Analytics']
+option_select = st.sidebar.\
+    selectbox("What would you like?",Options)
+
+if option_select == 'Reader':
     revel_list = ['Makkah','Medina','Both']
-    surahs = file['Name of Surah'].unique().tolist()
+    surahs = file['Name of Surah'].\
+        unique().tolist()
     surahs.append("All")
-    
-    Type = option = st.selectbox("Place of Revelation", revel_list)
-    if Type =='Both':
-        option = st.selectbox("Which Surah", surahs)
-        if option == 'All':
-            st.write(file.head())
+    surahs = np.sort(surahs)
+    Type = st.sidebar.\
+        selectbox("Place of Revelation", revel_list, index = revel_list.index('Both'))
+
+    with st.container():
+        if Type =='Both':
+            option = st.sidebar.selectbox("Which Surah", surahs)
+            if option == 'All':
+                st.write(file.iloc[:,:3])
+            else:
+                st.write(file[file['Name of Surah'] == option].iloc[:,:3])
         else:
-            st.write(file[file['Name of Surah'] == option].head())
-    else:
-        option = st.selectbox("Which Surah", file[file['Place of Revelation'] == Type]['Name of Surah'].unique())
-        st.write(file[file['Name of Surah'] == option].head())
+            df_1 = file[file['Place of Revelation'] == Type]
+            surahs = file[file['Place of Revelation'] == Type]['Name of Surah'].unique().tolist()
+            surahs.append("All")
+            surahs = np.sort(surahs)
+
+            option = st.sidebar.selectbox("Which Surah", surahs)
+            
+            if option == 'All':
+                st.write(df_1.iloc[:,:3])
+            else:
+                st.write(df_1[df_1['Name of Surah'] == option].iloc[:,:3])
