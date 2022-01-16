@@ -36,16 +36,17 @@ def make_data(df):
     return(df_1a)
 df = make_data(file)
 with st.container():
-    Type = option = st.selectbox("Place of Revelation", file['Place of Revelation'].unique())
-    option = st.selectbox("Which Surah", file[file['Place of Revelation'] == Type]['Name of Surah'].unique())
-    st.write(file[file['Name of Surah'] == option].head())
-
-with st.container():
-    fig2 = px.pie(df ,\
-        labels = 'index', values = 'Surah',\
-            hover_name="index",\
-                hover_data=["index"],\
-                    title="Covid Cases in US by State")
-    fig2.update_traces(text = df['index'],textinfo='text+percent',  textposition='inside')
-
-    st.plotly_chart(fig2, True)
+    revel_list = ['Makkah','Medina','Both']
+    surahs = file['Name of Surah'].unique().tolist()
+    surahs.append("All")
+    
+    Type = option = st.selectbox("Place of Revelation", revel_list)
+    if Type =='Both':
+        option = st.selectbox("Which Surah", surahs)
+        if option == 'All':
+            st.write(file.head())
+        else:
+            st.write(file[file['Name of Surah'] == option].head())
+    else:
+        option = st.selectbox("Which Surah", file[file['Place of Revelation'] == Type]['Name of Surah'].unique())
+        st.write(file[file['Name of Surah'] == option].head())
