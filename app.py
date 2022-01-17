@@ -25,6 +25,8 @@ def get_data():
     
     #Remove Credit info
     df = df.iloc[:-11,:]
+
+    df['Length'] = df['English Translation'].str.len()
     #Change Data Types
     df['Surah'] = df.Surah.astype('int')
     df['Ayah'] = df.Ayah.astype('int')
@@ -35,7 +37,12 @@ file = get_data()
 
 def make_data(df):
     df_1a = df.Surah.value_counts().reset_index().sort_values('index')
+    df_1a = df_1a.rename(columns =\
+        {'index':'Surah','Surah':'Ayah Count'})
 
+    df_1b = df.groupby('Surah')['Length'].sum('Length').reset_index()
+    df_1a = pd.merge(df_1a,df_1b, on= 'Surah', how= 'inner')
+    st.write(df_1b)
     return(df_1a)
 df = make_data(file)
 
@@ -56,9 +63,9 @@ if option_select == 'Reader':
         if Type =='Both':
             option = st.sidebar.selectbox("Which Surah", surahs)
             if option == 'All':
-                st.write(file.iloc[:,:3])
+                st.write(file.iloc[:,:4])
             else:
-                st.write(file[file['Name of Surah'] == option].iloc[:,:3])
+                st.write(file[file['Name of Surah'] == option].iloc[:,:4])
         else:
             df_1 = file[file['Place of Revelation'] == Type]
             surahs = file[file['Place of Revelation'] == Type]['Name of Surah'].unique().tolist()
@@ -68,6 +75,8 @@ if option_select == 'Reader':
             option = st.sidebar.selectbox("Which Surah", surahs)
             
             if option == 'All':
-                st.write(df_1.iloc[:,:3])
+                st.write(df_1.iloc[:,:4])
             else:
-                st.write(df_1[df_1['Name of Surah'] == option].iloc[:,:3])
+                st.write(df_1[df_1['Name of Surah'] == option].iloc[:,:4])
+elif option_select == 'Analytics':
+    st.write(df)
