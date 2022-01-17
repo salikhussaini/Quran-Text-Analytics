@@ -10,8 +10,13 @@ import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 import zipfile
 
-st.set_page_config(page_title="The Holy Quran", page_icon="🙏", layout="centered")
+import nltk
+import string
+from collections import Counter
+from wordcloud import WordCloud
 
+st.set_page_config(page_title="The Holy Quran", page_icon="🙏", layout="centered")
+st.set_option('deprecation.showPyplotGlobalUse', False)
 st.title("🙏 The Holy Quran")
 @st.cache 
 def get_data():
@@ -33,8 +38,6 @@ def get_data():
     #Merge Surah info
     df = pd.merge(df,df1,on = 'Surah',how='inner')
     return(df)
-file = get_data()
-
 def make_data(df):
     df_1a = df.Surah.value_counts().reset_index().sort_values('index')
     df_1a = df_1a.rename(columns =\
@@ -42,8 +45,9 @@ def make_data(df):
 
     df_1b = df.groupby('Surah')['Length'].sum('Length').reset_index()
     df_1a = pd.merge(df_1a,df_1b, on= 'Surah', how= 'inner')
-    st.write(df_1b)
     return(df_1a)
+
+file = get_data()
 df = make_data(file)
 
 Options = ['Reader','Analytics']
@@ -79,4 +83,54 @@ if option_select == 'Reader':
             else:
                 st.write(df_1[df_1['Name of Surah'] == option].iloc[:,:4])
 elif option_select == 'Analytics':
-    st.write(df)
+    def surah(df):
+        surahs = df['Surah'].unique().tolist()
+        Surah_Data = []
+        for surah in surahs:
+            Data = ''
+            for val in df[df["Surah"] == surah]['English Translation']:
+                Data += val
+            Surah_Data.append(Data)
+        Surahs_df = pd.DataFrame({'Data':Surah_Data}).reset_index().rename(columns = {'index':"Surah"})
+        return(Surahs_df)
+    def nlp_stop():
+        nltk.download("stopwords")
+        nltk.download("punkt")
+        #Create Stop Words Corpus
+        stop_words = nltk.corpus.stopwords.words("english") + list(string.punctuation) \
+        + list(string.ascii_lowercase) + list(string.ascii_uppercase) + list(string.digits) \
+        + list(['--']+["''"]+["``"]+[".."]+["..."]+["ii"]+["iii"]+["iv"]+["'s"]+["the"]+["however"] \
+        + ["when"]+["as"]+["meanwhile"]+['eventually'])
+        return(stop_words)
+
+    def nlp(surah_data):
+        stop_words = nlp_stop()
+        
+        Data = ''
+        for a in surah_data['Data']:
+            Data += (" "+ a)
+        tokens = nltk.word_tokenize(Data)
+
+        # Convert the tokens into lowercase: lower_tokens
+        lower_tokens = [s.lower() for s in tokens]
+
+        filtered_sentence  = [w for w in lower_tokens if not w in stop_words]
+
+        #Count Words
+        hr1_counter = Counter(filtered_sentence)
+        df_vocab = pd.DataFrame.from_dict(hr1_counter,orient = 'index').reset_index().rename(columns = {'index':'Vocab',0:'Count'})
+        df_vocab = df_vocab.sort_values('Count',ascending = False)
+
+
+        return(df_vocab,hr1_counter)
+    
+    surah_data = surah(file)
+    nn,n1 = nlp(surah_data)
+
+
+    st.write(nn)
+
+    wordcloud = WordCloud(width = 1000, height = 500).generate_from_frequencies(n1)
+    plt.imshow(wordcloud)
+    #plt.show()
+    st.pyplot()
