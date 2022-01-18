@@ -1,3 +1,4 @@
+from numpy.core.fromnumeric import sort
 import streamlit as st
 
 import pandas as pd
@@ -92,7 +93,11 @@ elif option_select == 'Analytics':
                 Data += val
             Surah_Data.append(Data)
         Surahs_df = pd.DataFrame({'Data':Surah_Data}).reset_index().rename(columns = {'index':"Surah"})
-        return(Surahs_df)
+
+        df1 = pd.read_csv('Data/Surahs.csv').iloc[:,:2]
+
+        new_df = pd.merge(Surahs_df,df1,on = 'Surah',how='inner')
+        return(new_df)
     def nlp_stop():
         nltk.download("stopwords")
         nltk.download("punkt")
@@ -124,13 +129,28 @@ elif option_select == 'Analytics':
 
         return(df_vocab,hr1_counter)
     
+    option_1 = st.sidebar.radio("Which Surah?",['All', 'Specific Surah'])
     surah_data = surah(file)
-    nn,n1 = nlp(surah_data)
+    
+    if option_1 == 'All':
+        st.markdown("## Top 10 Words in the Whole Quran")
+        nn,n1 = nlp(surah_data)
+        st.write(nn.head(10))
 
+        wordcloud = WordCloud(width = 1000, height = 500).generate_from_frequencies(n1)
+        plt.axis("off")
+        plt.imshow(wordcloud)
+        #plt.show()
+        st.pyplot()
+    else:
+        option_2 = st.sidebar.selectbox("Which Surah?",sort(surah_data['Name of Surah'].unique()))
+        surah_data1 = surah_data[surah_data['Name of Surah'] == option_2]
+        nn,n1 = nlp(surah_data1)
+        st.markdown("## Top 10 Words in {}".format(option_2))
+        st.write(nn.head(10))
 
-    st.write(nn)
-
-    wordcloud = WordCloud(width = 1000, height = 500).generate_from_frequencies(n1)
-    plt.imshow(wordcloud)
-    #plt.show()
-    st.pyplot()
+        wordcloud = WordCloud(width = 1000, height = 500).generate_from_frequencies(n1)
+        plt.axis("off")
+        plt.imshow(wordcloud)
+        #plt.show()
+        st.pyplot()
