@@ -90,10 +90,11 @@ elif option_select == 'Analytics':
         for surah in surahs:
             Data = ''
             for val in df[df["Surah"] == surah]['English Translation']:
-                Data += val
+                val1 = "  " + val
+                Data += val1
             Surah_Data.append(Data)
         Surahs_df = pd.DataFrame({'Data':Surah_Data}).reset_index().rename(columns = {'index':"Surah"})
-
+        Surahs_df['Surah']  = Surahs_df['Surah'] + 1
         df1 = pd.read_csv('Data/Surahs.csv').iloc[:,:2]
 
         new_df = pd.merge(Surahs_df,df1,on = 'Surah',how='inner')
@@ -113,7 +114,8 @@ elif option_select == 'Analytics':
         
         Data = ''
         for a in surah_data['Data']:
-            Data += (" "+ a)
+            val = "  " + a
+            Data += val
         tokens = nltk.word_tokenize(Data)
 
         # Convert the tokens into lowercase: lower_tokens
